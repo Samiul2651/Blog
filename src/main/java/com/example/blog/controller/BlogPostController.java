@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/post-blog/")
+@RequestMapping("/api/blogPost/")
 public class BlogPostController {
     private final BlogPostService blogPostService;
 
@@ -18,6 +21,11 @@ public class BlogPostController {
     @GetMapping("/check/{id}/{title}")
     public ResponseEntity<String> checkBlogTitle(@PathVariable Long id, @PathVariable String title){
         return blogPostService.check(id, title);
+    }
+
+    @GetMapping("/getAll/{id}")
+    public ResponseEntity<List<BlogPostDTO>> getAll(@PathVariable Long id){
+        return blogPostService.getAll(id);
     }
 
     @PutMapping("/save")

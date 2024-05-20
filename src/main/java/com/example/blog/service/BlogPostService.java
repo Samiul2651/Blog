@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -58,5 +60,26 @@ public class BlogPostService {
         blogPostEntity.setContent(blogPostDTO.getContent());
     }
 
+    public ResponseEntity<List<BlogPostDTO>> getAll(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if(user.isEmpty()){
+            throw new RuntimeException("User not found");
+        }
+        List<BlogPost> blogPosts = blogPostRepository.findAllByAuthor(user.get());
+        List<BlogPostDTO> blogPostDTOs = covertIntoBlogPostDTOs(blogPosts);
+        return new ResponseEntity<>(blogPostDTOs, HttpStatus.ACCEPTED);
+    }
+
+    private List<BlogPostDTO> covertIntoBlogPostDTOs(List<BlogPost> blogPosts) {
+        List<BlogPostDTO> blogPostDTOs = new ArrayList<>();
+        for (BlogPost blogPost : blogPosts) {
+            BlogPostDTO blogPostDTO = new BlogPostDTO();
+            blogPostDTO.setAuthor(blogPost.getAuthor().getUsername());
+            blogPostDTO.setTitle(blogPost.getTitle());
+            blogPostDTO.setContent(blogPost.getContent());
+            blogPostDTOs.add(blogPostDTO);
+        }
+        return blogPostDTOs;
+    }
 
 }
