@@ -19,14 +19,35 @@ public class BlogPostService {
     @Autowired
     private UserRepository userRepository;
 
-
+    public ResponseEntity<String> check(Long authorId, String title){
+        Optional<User> user = userRepository.findById(authorId);
+        if(user.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        boolean exists = blogPostRepository.existsByAuthorAndTitle(user.get(), title);
+        if(exists){
+            return new ResponseEntity<>("Not OK", HttpStatus.CONFLICT);
+        }
+        else
+            return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
 
     public ResponseEntity<String> save(BlogPostDTO blogPost) {
         BlogPost blogPostEntity = new BlogPost();
         saveBlog(blogPostEntity, blogPost);
         return new ResponseEntity<>("Blod saved", HttpStatus.CREATED);
     }
-//
+
+    public ResponseEntity<String> delete(Long autborId, String title){
+        Optional<User> user = userRepository.findById(autborId);
+        if(user.isEmpty()){
+            throw new RuntimeException("User not found");
+        }
+        blogPostRepository.deleteByAuthorAndTitle(user.get(),title);
+        return new ResponseEntity<>("Deleted", HttpStatus.OK);
+    }
+
+
     private void saveBlog(BlogPost blogPostEntity, BlogPostDTO blogPostDTO) {
         Optional<User> user = userRepository.findByUsername(blogPostDTO.getAuthor());
         if(user.isEmpty()) {
@@ -36,4 +57,6 @@ public class BlogPostService {
         blogPostEntity.setTitle(blogPostDTO.getTitle());
         blogPostEntity.setContent(blogPostDTO.getContent());
     }
+
+
 }
