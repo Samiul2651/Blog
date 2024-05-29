@@ -21,31 +21,31 @@ public class BlogPostService {
     @Autowired
     private UserRepository userRepository;
 
-    public ResponseEntity<String> check(Long authorId, String title){
-        Optional<User> user = userRepository.findById(authorId);
+    public ResponseEntity<String> check(String author, String title){
+        Optional<User> user = userRepository.findByUsername(author);
         if(user.isEmpty()) {
             throw new RuntimeException("User not found");
         }
         boolean exists = blogPostRepository.existsByAuthorAndTitle(user.get(), title);
         if(exists){
-            return new ResponseEntity<>("Not OK", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Title Not Available", HttpStatus.CONFLICT);
         }
         else
-            return new ResponseEntity<>("OK", HttpStatus.OK);
+            return new ResponseEntity<>("Title Available", HttpStatus.OK);
     }
 
     public ResponseEntity<String> save(BlogPostDTO blogPost) {
         BlogPost blogPostEntity = new BlogPost();
         saveBlog(blogPostEntity, blogPost);
-        return new ResponseEntity<>("Blod saved", HttpStatus.CREATED);
+        return new ResponseEntity<>("Blog saved", HttpStatus.CREATED);
     }
 
-    public ResponseEntity<String> delete(Long autborId, String title){
-        Optional<User> user = userRepository.findById(autborId);
+    public ResponseEntity<String> delete(String author, String title){
+        Optional<User> user = userRepository.findByUsername(author);
         if(user.isEmpty()){
             throw new RuntimeException("User not found");
         }
-        blogPostRepository.deleteByAuthorAndTitle(user.get(),title);
+        blogPostRepository.deleteByTitleAndAuthorId(title, user.get().getId());
         return new ResponseEntity<>("Deleted", HttpStatus.OK);
     }
 
@@ -58,14 +58,27 @@ public class BlogPostService {
         blogPostEntity.setAuthor(user.get());
         blogPostEntity.setTitle(blogPostDTO.getTitle());
         blogPostEntity.setContent(blogPostDTO.getContent());
+        blogPostRepository.save(blogPostEntity);
     }
 
-    public ResponseEntity<List<BlogPostDTO>> getAll(Long id) {
-        Optional<User> user = userRepository.findById(id);
+    public ResponseEntity<List<BlogPostDTO>> getAll(String author) {
+        Optional<User> user = userRepository.findByUsername(author);
         if(user.isEmpty()){
             throw new RuntimeException("User not found");
         }
         List<BlogPost> blogPosts = blogPostRepository.findAllByAuthor(user.get());
+        List<BlogPostDTO> blogPostDTOs = covertIntoBlogPostDTOs(blogPosts);
+        return new ResponseEntity<>(blogPostDTOs, HttpStatus.ACCEPTED);
+    }
+
+    public ResponseEntity<List<BlogPostDTO>> getAll(){
+        List<BlogPost> blogPosts = blogPostRepository.findAll();
+        List<BlogPostDTO> blogPostDTOs = covertIntoBlogPostDTOs(blogPosts);
+        return new ResponseEntity<>(blogPostDTOs, HttpStatus.ACCEPTED);
+    }
+
+    public ResponseEntity<List<BlogPostDTO>> getAllByTitle(String title) {
+        List<BlogPost> blogPosts = blogPostRepository.findAllByTitleStartingWith(title);
         List<BlogPostDTO> blogPostDTOs = covertIntoBlogPostDTOs(blogPosts);
         return new ResponseEntity<>(blogPostDTOs, HttpStatus.ACCEPTED);
     }

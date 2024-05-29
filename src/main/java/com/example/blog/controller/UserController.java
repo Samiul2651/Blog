@@ -8,6 +8,7 @@ import com.example.blog.service.UserService;
 
 @RestController
 @RequestMapping("/api/user/")
+@CrossOrigin(origins = "http://localhost:4200/")
 public class UserController {
     private final UserService userService;
 
@@ -28,10 +29,10 @@ public class UserController {
         String result = userService.registerUser(userDTO.getUsername(), userDTO.getEmail(),
                 userDTO.getPassword());
         if(result.equals("Registration Successfull")){
-            return new ResponseEntity<>(result, HttpStatus.CONFLICT);
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
         }
         else{
-            return new ResponseEntity<>(result, HttpStatus.CREATED);
+            return new ResponseEntity<>(result, HttpStatus.CONFLICT);
         }
     }
 }
